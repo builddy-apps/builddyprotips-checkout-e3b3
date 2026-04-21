@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marketplace — Builddy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: "class", theme: { extend: { animation: { "fade-in": "fadeIn 0.3s ease-in-out" },
+      keyframes: { fadeIn: { "0%": { opacity: "0" }, "100%": { opacity: "1" } } } } } };
+  </script>
+  <style>
+    * { transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
+    .spinner { border:3px solid rgba(128,128,128,0.3); border-top:3px solid #3b82f6; border-radius:50%; width:40px; height:40px; animation:spin 0.8s linear infinite; }
+    @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+    @keyframes toast-in { 0%{transform:translateX(100%);opacity:0;} 100%{transform:translateX(0);opacity:1;} }
+    .toast-enter { animation: toast-in 0.3s ease-out; }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+  <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <a href="/" class="text-xl font-bold text-blue-600 dark:text-blue-400 shrink-0">Marketplace</a>
+      <div class="flex-1 max-w-xl"><div class="relative">
+        <input id="searchInput" type="text" placeholder="Search products..." class="w-full px-4 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+        <span class="absolute left-3 top-2.5 text-gray-400">&#128269;</span>
+      </div></div>
+      <div class="flex items-center gap-3">
+        <button id="cartBtn" class="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><span class="text-xl">&#128722;</span>
+          <span id="cartCount" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span></button>
+        <button id="darkToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><span id="darkIcon" class="text-xl">&#9790;</span></button>
+        <a href="/" class="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto w-full flex-1 flex gap-6 px-4 py-6">
+    <aside class="hidden lg:block w-56 shrink-0">
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sticky top-20">
+        <h3 class="font-semibold mb-3">Categories</h3><div id="categoryList" class="space-y-1"><p class="text-sm text-gray-500">Loading...</p></div>
+        <h3 class="font-semibold mt-6 mb-3">Price Range</h3>
+        <div class="flex gap-2">
+          <input id="minPrice" type="number" placeholder="Min" class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+          <input id="maxPrice" type="number" placeholder="Max" class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        </div>
+        <button id="filterBtn" class="w-full mt-3 px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600">Apply</button>
+        <button id="clearFiltersBtn" class="w-full mt-2 px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-sm rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600">Clear</button>
+        <h3 class="font-semibold mt-6 mb-3">Sort By</h3>
+        <select id="sortSelect" class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
+          <option value="created_at">Newest</option><option value="price">Price: Low-High</option><option value="price_desc">Price: High-Low</option><option value="rating">Top Rated</option><option value="name">Name A-Z</option>
+        </select>
+      </div>
+    </aside>
+
+    <div class="flex-1 min-w-0">
+      <div id="loadingState" class="flex flex-col items-center justify-center py-20"><div class="spinner mb-4"></div><p class="text-gray-500">Loading...</p></div>
+      <div id="emptyState" class="hidden flex flex-col items-center justify-center py-20 animate-fade-in"><div class="text-6xl mb-4">&#128722;</div><p class="text-gray-500 text-lg">No products found</p></div>
+      <div id="productGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 animate-fade-in"></div>
+      <div id="pagination" class="hidden flex items-center justify-center gap-2 mt-6">
+        <button id="prevPage" class="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm">Previous</button>
+        <span id="pageInfo" class="text-sm text-gray-500"></span>
+        <button id="nextPage" class="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm">Next</button>
+      </div>
+    </div>
+  </div>
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2 w-80"></div>
+
+  <script>
+    (function () {
+      "use strict";
+      const API = "/api/marketplace", TK = "builddy_access_token";
+      let currentPage = 1, totalPages = 1, selectedCategory = null;
+      const cart = JSON.parse(localStorage.getItem("builddy_cart") || "[]");
+
+      function esc(s) { const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+      function toast(msg, type="info") {
+        const c=document.getElementById("toastContainer"), colors={success:"bg-green-500",error:"bg-red-500",info:"bg-blue-500"};
+        const t=document.createElement("div"); t.className=`${colors[type]||colors.info} text-white px-4 py-3 rounded-lg shadow-lg toast-enter`; t.textContent=msg; c.appendChild(t); setTimeout(()=>t.remove(),3000);
+      }
+      function updateBadge() {
+        const b=document.getElementById("cartCount");
+        if(cart.length>0){b.textContent=cart.length;b.classList.remove("hidden");b.classList.add("flex");}
+        else{b.classList.add("hidden");b.classList.remove("flex");}
+      }
+      updateBadge();
+
+      async function apiFetch(url) {
+        const h={}, tk=localStorage.getItem(TK); if(tk) h["Authorization"]=`Bearer ${tk}`;
+        const r=await fetch(url,{headers}); const d=await r.json(); if(!r.ok||!d.success) throw new Error(d.error); return d;
+      }
+
+      async function loadCategories() {
+        try {
+          const r=await apiFetch(`${API}/categories`), c=document.getElementById("categoryList");
+          c.innerHTML=`<button data-cat="" class="cat-btn w-full text-left px-2 py-1.5 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-medium">All</button>` +
+            r.data.map(cat=>`<button data-cat="${cat.id}" class="cat-btn w-full text-left px-2 py-1.5 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">${esc(cat.name)} (${cat.listing_count||0})</button>`).join("");
+          c.querySelectorAll(".cat-btn").forEach(b=>b.addEventListener("click",()=>{selectedCategory=b.dataset.cat||null;currentPage=1;loadListings();
+            c.querySelectorAll(".cat-btn").forEach(x=>x.classList.remove("font-medium","text-blue-600"));b.classList.add("font-medium","text-blue-600");}));
+        } catch(e) { console.error(e); }
+      }
+
+      async function loadListings() {
+        const $l=document.getElementById("loadingState"),$e=document.getElementById("emptyState"),$g=document.getElementById("productGrid"),$p=document.getElementById("pagination");
+        $l.classList.remove("hidden"); $e.classList.add("hidden"); $g.classList.add("hidden"); $p.classList.add("hidden");
+        try {
+          const sv=document.getElementById("sortSelect").value;
+          let sb="created_at",sd="desc"; if(sv==="price"){sb="price";sd="asc";}else if(sv==="price_desc"){sb="price";sd="desc";}else if(sv==="rating"){sb="rating";sd="desc";}else if(sv==="name"){sb="name";sd="asc";}
+          const params=new URLSearchParams({page:currentPage,limit:12,sort_by:sb,sort_dir:sd});
+          const s=document.getElementById("searchInput").value.trim(); if(s) params.set("search",s);
+          if(selectedCategory) params.set("category_id",selectedCategory);
+          const mn=document.getElementById("minPrice").value,mx=document.getElementById("maxPrice").value;
+          if(mn) params.set("min_price",mn); if(mx) params.set("max_price",mx);
+          const r=await apiFetch(`${API}/listings?${params}`);
+          totalPages=r.pagination?.pages||1; currentPage=r.pagination?.page||1; $l.classList.add("hidden");
+          if(!r.data.length){$e.classList.remove("hidden");return;}
+          $g.classList.remove("hidden");
+          $g.innerHTML=r.data.map(i=>`<div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow animate-fade-in">
+            <div class="h-40 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-4xl">${i.image_url?`<img src="${esc(i.image_url)}" class="w-full h-full object-cover"/>`:"&#128722;"}</div>
+            <div class="p-4"><h3 class="font-semibold text-sm truncate">${esc(i.title)}</h3><p class="text-xs text-gray-500 mt-1">${esc(i.seller_name||"Unknown")}</p>
+            <div class="flex items-center justify-between mt-3"><span class="text-lg font-bold text-blue-600">$${parseFloat(i.price).toFixed(2)}</span>
+            <span class="text-sm text-yellow-500">${"&#9733;".repeat(Math.round(i.avg_rating||0))} <span class="text-gray-400 text-xs">(${i.review_count||0})</span></span></div>
+            <div class="flex gap-2 mt-3"><button onclick="window.__viewItem(${i.id})" class="flex-1 px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600">View</button>
+            <button onclick="window.__addCart(${i.id},'${esc(i.title)}',${i.price})" class="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-sm rounded-lg hover:bg-gray-300">+ Cart</button></div></div></div>`).join("");
+          if(totalPages>1){$p.classList.remove("hidden");document.getElementById("pageInfo").textContent=`Page ${currentPage} of ${totalPages}`;
+            document.getElementById("prevPage").disabled=currentPage<=1;document.getElementById("nextPage").disabled=currentPage>=totalPages;}
+        } catch(err){ $l.classList.add("hidden"); toast(err.message,"error"); }
+      }
+
+      window.__addCart=(id,title,price)=>{cart.push({id,title,price});localStorage.setItem("builddy_cart",JSON.stringify(cart));updateBadge();toast(`Added "${title}"`,"success");};
+      window.__viewItem=(id)=>{window.location.href=`/?listing=${id}`;};
+      document.getElementById("prevPage")?.addEventListener("click",()=>{if(currentPage>1){currentPage--;loadListings();}});
+      document.getElementById("nextPage")?.addEventListener("click",()=>{if(currentPage<totalPages){currentPage++;loadListings();}});
+      let st; document.getElementById("searchInput").addEventListener("input",()=>{clearTimeout(st);st=setTimeout(()=>{currentPage=1;loadListings();},400);});
+      document.getElementById("filterBtn")?.addEventListener("click",()=>{currentPage=1;loadListings();});
+      document.getElementById("clearFiltersBtn")?.addEventListener("click",()=>{selectedCategory=null;document.getElementById("minPrice").value="";document.getElementById("maxPrice").value="";document.getElementById("searchInput").value="";currentPage=1;loadListings();});
+      document.getElementById("sortSelect")?.addEventListener("change",()=>loadListings());
+      document.getElementById("cartBtn")?.addEventListener("click",()=>{if(!cart.length){toast("Cart empty","info");return;}toast(`${cart.length} item(s) in cart`,"info");});
+
+      const saved=localStorage.getItem("builddy-dark"),icon=document.getElementById("darkIcon");
+      if(saved==="false"){document.documentElement.classList.remove("dark");icon.textContent="\u2600";}
+      document.getElementById("darkToggle").addEventListener("click",()=>{const d=document.documentElement.classList.toggle("dark");localStorage.setItem("builddy-dark",d);icon.textContent=d?"\u263E":"\u2600";});
+
+      loadCategories(); loadListings();
+    })();
+  </script>
+</body>
+</html>

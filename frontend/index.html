@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Builddy Pro Tips — $1 PDF Guide</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: { 50:'#f0f4ff',100:'#dbe4ff',200:'#bac8ff',500:'#4f6ef7',600:'#3b5bdb',700:'#364fc7',900:'#1e3a5f' },
+            surface: { DEFAULT:'#ffffff', dark:'#161a2e', elevated:'#1e2340' },
+            accent: { 500:'#20c997',600:'#12b886' },
+          },
+          animation: { "fade-in-up":"fadeInUp .6s ease-out both", "confetti-fall":"confettiFall 1.5s ease-out forwards" },
+          keyframes: {
+            fadeInUp: { "0%":{ opacity:"0",transform:"translateY(20px)" }, "100%":{ opacity:"1",transform:"translateY(0)" } },
+            confettiFall: { "0%":{ transform:"translateY(-10px) rotate(0deg)",opacity:"1" }, "100%":{ transform:"translateY(60vh) rotate(720deg)",opacity:"0" } },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    *{transition:background-color .2s,color .2s,border-color .2s}
+    body{font-family:Inter,system-ui,-apple-system,sans-serif}
+    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    .loader{border:3px solid rgba(128,128,128,.3);border-top-color:#4f6ef7;border-radius:50%;width:20px;height:20px;animation:spin .6s linear infinite;display:inline-block}
+    .faq-answer{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;padding:0 1rem}
+    .faq-answer.open{max-height:200px;padding:.75rem 1rem}
+    .mockup{perspective:800px}
+    .mockup-inner{transform:rotateY(-15deg) rotateX(5deg);transition:transform .3s ease;box-shadow:12px 12px 40px rgba(79,110,247,.15),4px 4px 12px rgba(0,0,0,.08)}
+    .mockup-inner:hover{transform:rotateY(0deg) rotateX(0deg)}
+    .learn-item{opacity:0;transform:translateY(12px);transition:opacity .4s ease,transform .4s ease}
+    .learn-item.visible{opacity:1;transform:translateY(0)}
+    .confetti-piece{position:fixed;width:10px;height:10px;border-radius:2px;animation:confettiFall 1.5s ease-out forwards;pointer-events:none;z-index:9999}
+    @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(60vh) rotate(720deg);opacity:0}}
+  </style>
+</head>
+<body class="bg-[#f8f9fc] dark:bg-[#0c0f1d] text-gray-900 dark:text-gray-100 min-h-screen"
+  x-data="checkout()" x-init="init()">
+
+  <!-- HERO -->
+  <section class="max-w-6xl mx-auto px-4 py-12 md:py-20 animate-fade-in-up">
+    <div class="flex flex-col md:flex-row items-center gap-10 md:gap-16">
+      <div class="mockup flex-shrink-0">
+        <div class="mockup-inner w-56 h-72 md:w-64 md:h-80 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex flex-col items-center justify-center p-6 text-white relative overflow-hidden">
+          <div class="absolute inset-0 opacity-10" style="background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,255,255,.1) 10px,rgba(255,255,255,.1) 20px)"></div>
+          <svg class="w-12 h-12 mb-3 opacity-80" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zM8 17h8v-2H8v2zm0-4h8v-2H8v2z"/></svg>
+          <span class="text-lg font-bold text-center leading-tight">Builddy<br/>Pro Tips</span>
+          <span class="mt-2 text-xs opacity-70">PDF Guide</span>
+        </div>
+      </div>
+      <div class="flex-1 text-center md:text-left">
+        <span class="inline-block px-3 py-1 rounded-full bg-primary-500/10 text-primary-500 text-sm font-semibold mb-4">$1 Digital Download</span>
+        <h1 class="text-3xl md:text-5xl font-extrabold mb-4 text-gray-900 dark:text-gray-50">Builddy Pro Tips</h1>
+        <p class="text-gray-600 dark:text-gray-400 text-lg mb-2">Master the art of shipping profitable side projects with 50 battle-tested strategies used by top indie makers.</p>
+        <p class="text-gray-500 dark:text-gray-500 text-base">From idea validation to launch day — everything you need to go from zero to paying customers, distilled into one actionable guide.</p>
+        <a href="#checkout" class="inline-block mt-6 px-8 py-3 bg-primary-500 text-white font-semibold rounded-xl hover:bg-primary-600 shadow-lg hover:shadow-xl transition-all">Get Instant Access →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT YOU'LL LEARN -->
+  <section class="bg-white dark:bg-surface-dark border-y border-gray-200 dark:border-gray-700/50 py-14">
+    <div class="max-w-4xl mx-auto px-4">
+      <h2 class="text-2xl md:text-3xl font-bold text-center mb-10">What you'll learn</h2>
+      <div class="grid md:grid-cols-2 gap-4" id="learnGrid">
+        <div class="learn-item flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors">
+          <svg class="w-5 h-5 mt-0.5 text-primary-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span>How to validate your idea in 48 hours without writing a single line of code</span>
+        </div>
+        <div class="learn-item flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors">
+          <svg class="w-5 h-5 mt-0.5 text-primary-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span>The exact launch checklist that generated $5K in first-week revenue</span>
+        </div>
+        <div class="learn-item flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors">
+          <svg class="w-5 h-5 mt-0.5 text-primary-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span>5 pricing psychology tricks that doubled conversion rates for solo founders</span>
+        </div>
+        <div class="learn-item flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors">
+          <svg class="w-5 h-5 mt-0.5 text-primary-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span>How to build a waitlist of 500+ people before you even start building</span>
+        </div>
+        <div class="learn-item flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors">
+          <svg class="w-5 h-5 mt-0.5 text-primary-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span>Automation workflows that save 10+ hours per week on marketing tasks</span>
+        </div>
+        <div class="learn-item flex items-start gap-3 p-3 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/10 transition-colors">
+          <svg class="w-5 h-5 mt-0.5 text-primary-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span>The one-page MVP framework to ship your first product in under 30 days</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL PROOF -->
+  <section class="max-w-5xl mx-auto px-4 py-14">
+    <h2 class="text-2xl font-bold text-center mb-8">Loved by makers</h2>
+    <div class="flex gap-4 overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-3 md:overflow-visible pb-4 md:pb-0">
+      <template x-for="r in reviews" :key="r.name">
+        <div class="min-w-[280px] md:min-w-0 snap-start bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700/50 rounded-xl p-5 shadow-sm">
+          <div class="flex items-center gap-1 mb-2" x-html="r.stars"></div>
+          <p class="text-gray-700 dark:text-gray-300 text-sm mb-3" x-text="r.text"></p>
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 font-bold text-sm" x-text="r.name.charAt(0)"></div>
+            <div><p class="text-sm font-semibold" x-text="r.name"></p><p class="text-xs text-gray-500" x-text="r.role"></p></div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </section>
+
+  <!-- CHECKOUT -->
+  <section id="checkout" class="bg-white dark:bg-surface-dark border-y border-gray-200 dark:border-gray-700/50 py-14">
+    <div class="max-w-4xl mx-auto px-4">
+      <h2 class="text-2xl font-bold text-center mb-8">Complete your purchase</h2>
+      <div class="flex flex-col md:flex-row gap-8">
+        <!-- Form -->
+        <div class="flex-1 space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Full name</label>
+            <input x-model="form.name" type="text" placeholder="Jane Smith" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-elevated focus:ring-2 focus:ring-primary-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Email address</label>
+            <input x-model="form.email" type="email" placeholder="jane@example.com" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-elevated focus:ring-2 focus:ring-primary-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Card details</label>
+            <div class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-elevated text-gray-400 text-sm">4242 4242 4242 4242 ···· ····</div>
+          </div>
+          <p class="text-xs text-gray-400 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+            Secured with 256-bit SSL encryption
+          </p>
+        </div>
+        <!-- Order Summary -->
+        <div class="md:w-72 shrink-0">
+          <div class="bg-gray-50 dark:bg-surface-elevated border border-gray-200 dark:border-gray-700/50 rounded-xl p-5 space-y-4">
+            <h3 class="font-semibold text-sm uppercase tracking-wide text-gray-500">Order summary</h3>
+            <div class="flex justify-between text-sm"><span>Builddy Pro Tips (PDF)</span><span class="font-medium">$1.00</span></div>
+            <hr class="border-gray-200 dark:border-gray-700"/>
+            <div class="flex justify-between font-bold"><span>Total</span><span>$1.00</span></div>
+            <button @click="submitOrder()" :disabled="loading" class="w-full py-3 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
+              <span x-show="!loading" class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                Pay $1.00
+              </span>
+              <span x-show="loading" class="loader"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-3xl mx-auto px-4 py-14">
+    <h2 class="text-2xl font-bold text-center mb-8">Frequently asked questions</h2>
+    <div class="space-y-2">
+      <template x-for="(item, i) in faqs" :key="i">
+        <div class="border border-gray-200 dark:border-gray-700/50 rounded-xl overflow-hidden">
+          <button @click="openFaq === i ? openFaq = null : openFaq = i" class="w-full flex items-center justify-between px-5 py-4 text-left font-medium hover:bg-gray-50 dark:hover:bg-surface-dark transition-colors">
+            <span x-text="item.q"></span>
+            <svg :class="openFaq === i ? 'rotate-180' : ''" class="w-4 h-4 shrink-0 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div :class="openFaq === i ? 'open' : ''" class="faq-answer text-sm text-gray-600 dark:text-gray-400" x-text="item.a"></div>
+        </div>
+      </template>
+    </div>
+  </section>
+
+  <footer class="text-center py-8 text-sm text-gray-400 border-t border-gray-200 dark:border-gray-700/50">
+    &copy; 2025 Builddy Pro Tips · Instant digital delivery · 30-day money-back guarantee
+  </footer>
+
+  <!-- SUCCESS OVERLAY -->
+  <div x-show="success" x-transition.opacity.duration.300ms class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" @click.self="success=false">
+    <div x-show="success" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="bg-white dark:bg-surface-dark rounded-2xl max-w-md w-full p-8 text-center relative overflow-hidden">
+      <div id="confettiBox"></div>
+      <div class="w-16 h-16 mx-auto mb-4 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h3 class="text-2xl font-bold mb-2">Payment successful!</h3>
+      <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Order confirmed · A receipt has been sent to your email.</p>
+      <p class="text-gray-400 text-xs mb-6">Order #<span x-text="orderId"></span></p>
+      <button @click="success=false" class="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zM8 17h8v-2H8v2zm0-4h8v-2H8v2z"/></svg>
+        Download PDF
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function checkout() {
+      return {
+        form: { name: '', email: '' },
+        loading: false, success: false, orderId: '#BT-' + Math.random().toString(36).substr(2, 8).toUpperCase(),
+        openFaq: null,
+        reviews: [
+          { name:'Sarah K.', role:'Indie Hacker', stars: Array(5).fill('<span class="text-amber-400">★</span>').join(''), text:'Shipped my first SaaS in 3 weeks using these strategies. Absolute goldmine.' },
+          { name:'Marcus L.', role:'Product Designer', stars: Array(4).fill('<span class="text-amber-400">★</span>').join('') + '<span class="text-gray-300">★</span>', text:'The pricing section alone was worth 10x the price. Changed how I think about packaging.' },
+          { name:'Aisha R.', role:'Full-Stack Dev', stars: Array(5).fill('<span class="text-amber-400">★</span>').join(''), text:'Finally a guide that skips the fluff. Actionable tips from page one.' },
+        ],
+        faqs: [
+          { q:'How do I access the PDF after purchase?', a:'You\'ll get an instant download link on this page and a copy sent to your email. No account needed.' },
+          { q:'Is this a subscription?', a:'No — it\'s a one-time payment of $1. No recurring charges, ever.' },
+          { q:'What if I\'m not satisfied?', a:'We offer a 30-day money-back guarantee. Just reply to your receipt email.' },
+          { q:'How long is the guide?', a:'It\'s 42 pages packed with actionable frameworks, templates, and real-world examples.' },
+          { q:'Can I share this with my team?', a:'The license is for individual use. Email us for team pricing at team@builddy.dev.' },
+        ],
+        init() {
+          const obs = new IntersectionObserver((entries) => {
+            entries.forEach((e, idx) => {
+              if (e.isIntersecting) {
+                const items = document.querySelectorAll('.learn-item');
+                items.forEach((el, i) => setTimeout(() => el.classList.add('visible'), i * 100));
+                obs.disconnect();
+              }
+            });
+          }, { threshold: 0.2 });
+          const g = document.getElementById('learnGrid');
+          if (g) obs.observe(g);
+        },
+        async submitOrder() {
+          if (!this.form.name || !this.form.email) { alert('Please fill in your name and email.'); return; }
+          this.loading = true;
+          await new Promise(r => setTimeout(r, 1500));
+          this.loading = false;
+          this.success = true;
+          this.$nextTick(() => {
+            const box = document.getElementById('confettiBox');
+            const colors = ['#4f6ef7','#20c997','#fcc419','#ff6b6b','#bac8ff'];
+            for (let i = 0; i < 40; i++) {
+              const c = document.createElement('div');
+              c.className = 'confetti-piece';
+              c.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*20}%;background:${colors[i%colors.length]};animation-delay:${Math.random()*.5}s;animation-duration:${1+Math.random()}s;`;
+              box.appendChild(c);
+            }
+            setTimeout(() => { box.innerHTML = ''; }, 3000);
+          });
+        }
+      };
+    }
+  </script>
+</body>
+</html>
