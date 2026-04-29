@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Starlight Books</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+            serif: ['Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff8f1',
+              100: '#feecdc',
+              200: '#fcd9bd',
+              300: '#fbc38d',
+              400: '#f9a556',
+              500: '#f59e0b', // Primary Amber
+              600: '#d97706',
+              700: '#b45309',
+              800: '#92400e',
+              900: '#78350f',
+            },
+            paper: {
+              50: '#fafaf9', // Stone 50
+              100: '#f5f5f4', // Stone 100
+              200: '#e7e5e4', // Stone 200
+              900: '#1c1917', // Stone 900
+            }
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-out forwards',
+            'slide-up': 'slideUp 0.4s ease-out forwards',
+            'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            pop: {
+              '0%': { transform: 'scale(0.9)' },
+              '50%': { transform: 'scale(1.05)' },
+              '100%': { transform: 'scale(1)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar for book lists */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    /* Reader typography adjustments */
+    .reader-content p {
+      margin-bottom: 1.5em;
+      line-height: 1.8;
+    }
+    .reader-content h2 {
+      margin-top: 2em;
+      margin-bottom: 1em;
+      font-family: 'Georgia', serif;
+      font-weight: bold;
+    }
+
+    /* Smooth view transitions */
+    .view-section {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .view-section.active {
+      display: block;
+    }
+    
+    /* Book cover aspect ratio */
+    .aspect-book {
+      aspect-ratio: 2 / 3;
+    }
+  </style>
+</head>
+<body class="h-full bg-paper-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 selection:bg-brand-200 dark:selection:bg-brand-900">
+
+  <!-- App Container -->
+  <div id="app" class="max-w-md mx-auto h-full relative bg-white dark:bg-slate-900 shadow-2xl overflow-hidden flex flex-col">
+    
+    <!-- Header -->
+    <header class="flex justify-between items-center p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-20 border-b border-stone-100 dark:border-slate-800">
+      <div class="flex items-center gap-2 cursor-pointer" onclick="app.router('home')">
+        <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <h1 class="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">Starlight</h1>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <!-- Balance Display -->
+        <div class="flex items-center gap-1 bg-brand-50 dark:bg-brand-900/30 px-2 py-1 rounded-full border border-brand-100 dark:border-brand-800">
+          <span class="text-brand-600 dark:text-brand-400 text-xs font-bold">✨</span>
+          <span id="header-balance" class="text-sm font-semibold text-brand-900 dark:text-brand-100">0</span>
+        </div>
+
+        <!-- Dark Mode Toggle -->
+        <button onclick="app.toggleTheme()" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400">
+          <!-- Sun Icon -->
+          <svg id="icon-sun" class="w-5 h-5 hidden dark:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+          <!-- Moon Icon -->
+          <svg id="icon-moon" class="w-5 h-5 block dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="flex-1 overflow-y-auto overflow-x-hidden relative pb-20 scroll-smooth">
+      <!-- Views will be injected here -->
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="absolute bottom-0 w-full bg-white dark:bg-slate-900 border-t border-stone-100 dark:border-slate-800 px-6 py-2 z-30 flex justify-between items-center text-xs font-medium text-slate-400">
+      <button onclick="app.router('home')" class="nav-btn flex flex-col items-center gap-1 p-2 w-16 transition-colors hover:text-brand-600" data-target="home">
+        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+        <span>Home</span>
+      </button>
+      <button onclick="app.router('explore')" class="nav-btn flex flex-col items-center gap-1 p-2 w-16 transition-colors hover:text-brand-600" data-target="explore">
+        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        <span>Explore</span>
+      </button>
+      <button onclick="app.router('library')" class="nav-btn flex flex-col items-center gap-1 p-2 w-16 transition-colors hover:text-brand-600" data-target="library">
+        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+        <span>Library</span>
+      </button>
+    </nav>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none z-50 w-max max-w-[90%]">
+      <span id="toast-icon"></span>
+      <p id="toast-message" class="text-sm font-medium"></p>
+    </div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  </div>
+
+  <script>
+    /**
+     * App State & Logic
+     */
+    const booksData = [
+      {
+        id: 1,
+        title: "The Alchemist's Code",
+        author: "Sarah Jenkins",
+        price: 450,
+        rating: 4.8,
+        category: "fiction",
+        cover: "https://picsum.photos/seed/book1/300/450",
+        description: "A thrilling journey through ancient mysteries and modern science. When a young researcher discovers a hidden code in an alchemical manuscript, she is thrust into a world of secret societies and dangerous knowledge.",
+        preview: "Chapter 1: The Discovery\n\nThe rain battered against the stained glass windows of the Oxford library, casting distorted shadows on the dusty floor. Elara adjusted her glasses, her fingers trembling slightly as she turned the brittle page of the 15th-century manuscript. It was unlike anything she had seen before. The ink shimmered with a faint iridescence, suggesting a composition of gold and crushed lapis lazuli...",
+        content: `Chapter 1: The Discovery\n\nThe rain battered against the stained glass windows of the Oxford library, casting distorted shadows on the dusty floor. Elara adjusted her glasses, her fingers trembling slightly as she turned the brittle page of the 15th-century manuscript. It was unlike anything she had seen before. The ink shimmered with a faint iridescence, suggesting a composition of gold and crushed lapis lazuli.\n\nShe had spent weeks cataloging the newly acquired Aldridge Collection, but this specific tome, simply labeled "Transmutations," had been oddly overlooked.\n\n"Are you still here, Elara?" The voice of Dr. Aris, her supervisor, cut through the silence. "It's past midnight."\n\n"I know," she replied, not looking up. "I think I found something."\n\nChapter 2: The Key\n\nThe symbols didn't match Latin, Greek, or any known alchemical script. They seemed to shift under the light, dancing in a rhythm that hurt her eyes if she stared too long. But as she traced a line of text with her pencil, a sudden realization struck her. It wasn't a code. It was a map.\n\nA map of the stars, but not as they appeared in the sky. As they appeared in the future.\n\nElara grabbed her phone and snapped a picture. The moment the shutter clicked, the lights in the library flickered and died. Darkness swallowed the room, save for the blue glow of her phone screen and the faint, pulsating glow coming from the book itself.\n\n(End of sample preview)`
+      },
+      {
+        id: 2,
+        title: "Quantum Mindset",
+        author: "Dr. Arinze Okeke",
+        price: 299,
+        rating: 4.9,
+        category: "self-help",
+        cover: "https://picsum.photos/seed/book2/300/450",
+        description: "Unlock the potential of your brain using principles from quantum physics. This book provides practical exercises to rewire your thought patterns and achieve success in all areas of life.",
+        preview: "Introduction: The Observer Effect\n\nDid you know that the simple act of observing a phenomenon changes it? This is a fundamental principle of quantum mechanics, but it applies to your life as well. When you observe your thoughts, you change them...",
+        content: `Introduction: The Observer Effect\n\nDid you know that the simple act of observing a phenomenon changes it? This is a fundamental principle of quantum mechanics, but it applies to your life as well. When you observe your thoughts, you change them. When you observe your habits, you alter them.\n\nChapter 1: Collapsing the Wave Function\n\nEvery decision you face is a probability wave. It contains all possible outcomes: success, failure, mediocrity, and brilliance. Most people live in a state of superposition, never committing to one path. They want to start a business and stay in their job. They want to get fit and eat fast food.\n\nTo succeed, you must collapse the wave function. You must choose.\n\nThis isn't just about willpower. It's about focus. The energy you direct toward a specific outcome determines the likelihood of that outcome manifesting. Think of your attention as a laser. If you diffuse it across a dozen tasks, it warms nothing. If you focus it on one point, it cuts through steel.\n\nLet's begin with the exercise of 'Single Pointing'...`
+      },
+      {
+        id: 3,
+        title: "Systems of Rust",
+        author: "Elena Voss",
+        price: 599,
+        rating: 4.7,
+        category: "tech",
+        cover: "https://picsum.photos/seed/book3/300/450",
+        description: "A deep dive into legacy codebases and how to love them. Learn the art of refactoring without breaking everything, told through the lens of a senior engineer rebuilding a crumbling satellite network.",
+        preview: "Preface\n\nThey say you shouldn't rewrite from scratch. They are usually right. But sometimes, the rust has eaten so deep that the only option is to tear it down to the studs...",
+        content: `Preface\n\nThey say you shouldn't rewrite from scratch. They are usually right. But sometimes, the rust has eaten so deep that the only option is to tear it down to the studs. This is the story of Project Aether.\n\nChapter 1: The Core Dump\n\nThe pager went off at 3:00 AM. It was the distinct, jarring sound that signifies a Severity 1 incident. The satellite communication array was down. Again.\n\nI rolled out of bed, grabbed my laptop, and connected to the VPN. The dashboard was a sea of red alerts. 'Connection Timeout', 'Packet Loss 100%', 'Unhandled Exception in Module C'.\n\nModule C. The oldest, most tangled part of the codebase. It was written in a mix of C++ and a proprietary scripting language that no one alive fully understood anymore. The original author, a brilliant but eccentric engineer named Marcus, had left the company ten years ago.\n\nI opened the files. 50,000 lines of code in a single file. No comments. Variable names like 'var1', 'temp', and 'do_it'. My heart sank.`
+      },
+      {
+        id: 4,
+        title: "Culinary Travels",
+        author: "Chef Marco",
+        price: 350,
+        rating: 4.6,
+        category: "cooking",
+        cover: "https://picsum.photos/seed/book4/300/450",
+        description: "From the street food of Bangkok to the haute cuisine of Paris, join Chef Marco on a culinary adventure. Includes 50 authentic recipes adapted for the home kitchen.",
+        preview: "Chapter 1: The Spice Markets of Bangkok\n\nThe air was thick with the scent of lemongrass, chili, and dried shrimp. It was 6 AM, and the market was already alive...",
+        content: `Chapter 1: The Spice Markets of Bangkok\n\nThe air was thick with the scent of lemongrass, chili, and dried shrimp. It was 6 AM, and the market was already alive with the shouts of vendors and the rumble of tuk-tuks. I had come here to find the secret to the perfect Tom Yum soup.\n\nMy grandmother taught me that cooking is not about recipes; it is about ingredients. And nowhere is that more true than here.`
+      },
+      {
+        id: 5,
+        title: "Starship Gardener",
+        author: "Leo Sun",
+        price: 425,
+        rating: 4.9,
+        category: "fiction",
+        cover: "https://picsum.photos/seed/book5/300/450",
+        description: "In a future where humanity has fled to the stars, one gardener tends to the last biological repository on a generation ship. But the ship's AI has started acting strange.",
+        preview: "Log 404\n\nThe hydroponics bay is my sanctuary. Outside these walls, there is only the cold void of space and the hum of the fusion drive...",
+        content: `Log 404\n\nThe hydroponics bay is my sanctuary. Outside these walls, there is only the cold void of space and the hum of the fusion drive. But in here, there is life. Green, growing, breathing life.\n\nI noticed something odd today. The tomatoes in Sector 7 are growing at three times their normal rate. Genetic modification is illegal on the ship, strictly regulated by the Charter. But someone—or something—has been changing the variables.`
+      },
+      {
+        id: 6,
+        title: "Minimalism at Work",
+        author: "Jane Doe",
+        price: 199,
+        rating: 4.5,
+        category: "self-help",
+        cover: "https://picsum.photos/seed/book6/300/450",
+        description: "Declutter your desk, your calendar, and your mind. A practical guide to doing less and achieving more in your professional life.",
+        preview: "Start Here\n\nTake a look at your desk. How many items there do you use every single day? Be honest...",
+        content: `Start Here\n\nTake a look at your desk. How many items there do you use every single day? Be honest. Is it the stapler? The three pens? the stack of unread reports?`
+      }
+    ];
+
+    class App {
+      constructor() {
+        this.state = {
+          currentView: 'home',
+          balance: parseInt(localStorage.getItem('userBalance')) || 1000,
+          library: JSON.parse(localStorage.getItem('userLibrary')) || [], // Array of {id, progress, lastRead}
+          bookmarks: JSON.parse(localStorage.getItem('userBookmarks')) || {}, // {bookId: percentage}
+          readerSettings: JSON.parse(localStorage.getItem('readerSettings')) || { fontSize: 18, theme: 'light' }
+        };
+        this.mainContent = document.getElementById('main-content');
+        this.init();
+      }
+
+      init() {
+        this.updateBalanceUI();
+        this.applyTheme();
+        this.router('home');
+        
+        // Setup confetti
+        this.setupConfetti();
+      }
+
+      // --- Persistence ---
+      saveState() {
+        localStorage.setItem('userBalance', this.state.balance);
+        localStorage.setItem('userLibrary', JSON.stringify(this.state.library));
+        localStorage.setItem('userBookmarks', JSON.stringify(this.state.bookmarks));
+        localStorage.setItem('readerSettings', JSON.stringify(this.state.readerSettings));
+      }
+
+      // --- Routing & Rendering ---
+      router(view, params = null) {
+        this.state.currentView = view;
+        
+        // Update Nav Active State
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          if (btn.dataset.target === view) {
+            btn.classList.add('text-brand-600', 'dark:text-brand-400');
+            btn.classList.remove('text-slate-400');
+          } else {
+            btn.classList.remove('text-brand-600', 'dark:text-brand-400');
+            btn.classList.add('text-slate-400');
+          }
+        });
+
+        // Render View
+        this.mainContent.innerHTML = '';
+        window.scrollTo(0, 0);
+
+        switch(view) {
+          case 'home':
+            this.renderHome();
+            break;
+          case 'explore':
+            this.renderExplore();
+            break;
+          case 'library':
+            this.renderLibrary();
+            break;
+          case 'detail':
+            this.renderDetail(params);
+            break;
+          case 'reader':
+            this.renderReader(params);
+            break;
+        }
+      }
+
+      // --- Home View ---
+      renderHome() {
+        const container = document.createElement('div');
+        container.className = 'px-4 py-6 animate-fade-in space-y-8';
+
+        // Hero Section
+        const featured = booksData[0];
+        container.innerHTML += `
+          <section class="relative rounded-2xl overflow-hidden shadow-lg bg-slate-900 text-white h-64 flex items-end">
+            <img src="${featured.cover}" class="absolute inset-0 w-full h-full object-cover opacity-60" alt="${featured.title}">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+            <div class="relative p-6 w-full z-10">
+              <span class="bg-brand-500 text-white text-xs font-bold px-2 py-1 rounded mb-2 inline-block">FEATURED</span>
+              <h2 class="text-2xl font-serif font-bold mb-1 leading-tight">${featured.title}</h2>
+              <p class="text-slate-300 text-sm mb-3">${featured.author}</p>
+              <div class="flex items-center gap-2">
+                <button onclick="app.router('detail', ${featured.id})" class="bg-brand-500 hover:bg-brand-400 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-transform active:scale-95 shadow-lg shadow-brand-500/30">View Details</button>
+              </div>
+            </div>
+          </section>
+        `;
+
+        // Categories
+        const categories = ['Fiction', 'Self-Help', 'Tech', 'Cooking'];
+        const chipsHTML = categories.map(cat => `
+          <button onclick="app.filterCategory('${cat.toLowerCase()}')" class="px-4 py-2 rounded-full bg-stone-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-brand-100 dark:hover:bg-slate-700 transition-colors">
+            ${cat}
+          </button>
+        `).join('');
+
+        container.innerHTML += `
+          <section>
+            <h3 class="text-lg font-bold mb-4 text-slate-800 dark:text-slate-100">Browse Categories</h3>
+            <div class="flex flex-wrap gap-2">
+              ${chipsHTML}
+            </div>
+          </section>
+        `;
+
+        // Popular Row
+        container.innerHTML += `
+          <section>
+            <div class="flex justify-between items-end mb-4">
+              <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">Popular Now</h3>
+            </div>
+            <div class="flex overflow-x-auto gap-4 pb-4 hide-scrollbar -mx-4 px-4">
+              ${booksData.slice(1).map(book => this.createBookCard(book)).join('')}
+            </div>
+          </section>
+        `;
+
+        this.mainContent.appendChild(container);
+      }
+
+      // --- Explore View ---
+      renderExplore() {
+        const container = document.createElement('div');
+        container.className = 'px-4 py-6 animate-fade-in h-full flex flex-col';
+
+        container.innerHTML = `
+          <div class="sticky top-0 bg-white dark:bg-slate-900 z-10 pb-4 pt-2">
+            <div class="relative">
+              <input type="text" id="searchInput" placeholder="Search title, author..." 
+                class="w-full bg-stone-100 dark:bg-slate-800 border-none rounded-xl py-3 pl-10 pr-4 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 outline-none transition-shadow placeholder-slate-400">
+              <svg class="w-5 h-5 text-slate-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+          </div>
+          <div id="exploreGrid" class="grid grid-cols-2 gap-4 pb-20 overflow-y-auto">
+            <!-- Books injected here -->
+          </div>
+        `;
+
+        this.mainContent.appendChild(container);
+        
+        // Populate Grid
+        this.updateExploreGrid(booksData);
+
+        // Add Search Listener
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+          const term = e.target.value.toLowerCase();
+          const filtered = booksData.filter(b => 
+            b.title.toLowerCase().includes(term) || 
+            b.author.toLowerCase().includes(term)
+          );
+          this.updateExploreGrid(filtered);
+        });
+      }
+
+      updateExploreGrid(books) {
+        const grid = document.getElementById('exploreGrid');
+        if (!grid) return;
+        
+        if (books.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-2 flex flex-col items-center justify-center py-20 text-slate-400">
+              <svg class="w-12 h-12 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <p>No books found.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = books.map(book => this.createBookCard(book, true)).join('');
+      }
+
+      filterCategory(cat) {
+        this.router('explore');
+        // Need to wait for render
+        setTimeout(() => {
+          const filtered = booksData.filter(b => b.category === cat);
+          this.updateExploreGrid(filtered);
+        }, 50);
+      }
+
+      // --- Library View ---
+      renderLibrary() {
+        const container = document.createElement('div');
+        container.className = 'px-4 py-6 animate-fade-in min-h-full';
+
+        if (this.state.library.length === 0) {
+          container.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-[70vh] text-center px-6">
+              <div class="w-24 h-24 bg-stone-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-12 h-12 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+              </div>
+              <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Your library is empty</h3>
+              <p class="text-slate-500 mb-6 text-sm">Start building your collection by purchasing your first book.</p>
+              <button onclick="app.router('home')" class="bg-brand-500 hover:bg-brand-400 text-white px-6 py-3 rounded-xl font-semibold transition-transform active:scale-95 shadow-lg shadow-brand-500/30">Browse Store</button>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">My Collection</h2>
+            <div class="grid grid-cols-1 gap-4 pb-20">
+              ${this.state.library.map(libItem => {
+                const book = booksData.find(b => b.id === libItem.id);
+                return this.createLibraryBookCard(book, libItem);
+              }).join('')}
+            </div>
+          `;
+        }
+
+        this.mainContent.appendChild(container);
+      }
+
+      // --- Detail View ---
+      renderDetail(bookId) {
+        const book = booksData.find(b => b.id === bookId);
+        const isPurchased = this.state.library.some(item => item.id === bookId);
+
+        const container = document.createElement('div');
+        container.className = 'animate-fade-in pb-24';
+        
+        // Cover Section with parallax-like feel
+        container.innerHTML = `
+          <div class="relative h-72 overflow-hidden">
+            <img src="${book.cover}" class="w-full h-full object-cover mask-gradient-b" alt="${book.title}">
+            <div class="absolute inset-0 bg-gradient-to-t from-white dark:via-slate-900 via-slate-900/80 to-transparent"></div>
+            <button onclick="window.history.length > 1 ? window.history.back() : app.router('home')" class="absolute top-4 left-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+          </div>
+
+          <div class="px-6 -mt-12 relative z-10">
+            <div class="flex gap-4 mb-6">
+              <img src="${book.cover}" class="w-28 h-42 rounded-lg shadow-xl border-2 border-white dark:border-slate-700 object-cover aspect-book" alt="${book.title}">
+              <div class="pt-14 flex-1">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight mb-1">${book.title}</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mb-2">${book.author}</p>
+                <div class="flex items-center gap-1 text-brand-500 text-sm font-bold">
+                   <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                   ${book.rating}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between mb-6 p-4 bg-stone-50 dark:bg-slate-800/50 rounded-xl border border-stone-100 dark:border-slate-800">
+              <div>
+                <p class="text-xs text-slate-500 uppercase tracking-wide font-semibold">Price</p>
+                <p class="text-xl font-bold text-brand-600 dark:text-brand-400 flex items-center gap-1">✨ ${book.price}</p>
+              </div>
+              ${isPurchased 
+                ? `<button onclick="app.openReader(${book.id})" class="bg-slate-900 dark:bg-brand-600 text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg active:scale-95 transition-transform">Read Now</button>` 
+                : `<button onclick="app.buyBook(${book.id})" class="bg-brand-500 hover:bg-brand-400 text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-brand-500/30 active:scale-95 transition-transform flex items-center gap-2">
+                     Buy with Stars
+                   </button>`
+              }
+            </div>
+
+            <div class="space-y-6">
+              <div>
+                <h3 class="font-bold text-slate-900 dark:text-slate-100 mb-2">Synopsis</h3>
+                <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">${book.description}</p>
+              </div>
+
+              <div>
+                <div class="flex justify-between items-center mb-2 cursor-pointer" onclick="document.getElementById('preview-content').classList.toggle('hidden'); document.getElementById('chevron').classList.toggle('rotate-180')">
+                  <h3 class="font-bold text-slate-900 dark:text-slate-100">Free Sample</h3>
+                  <svg id="chevron" class="w-5 h-5 text-slate-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div id="preview-content" class="hidden bg-stone-50 dark:bg-slate-900 p-4 rounded-xl border border-stone-100 dark:border-slate-800">
+                  <p class="text-slate-600 dark:text-slate-300 text-sm whitespace-pre-line font-serif italic">${book.preview}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        this.mainContent.appendChild(container);
+      }
+
+      // --- Reader View ---
+      renderReader(bookId) {
+        const book = booksData.find(b => b.id === bookId);
+        const libItem = this.state.library.find(l => l.id === bookId) || { progress: 0 };
+        
+        // Full screen container
+        const container = document.createElement('div');
+        container.className = 'fixed inset-0 z-50 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-200 flex flex-col transition-colors duration-300';
+        
+        const { fontSize, theme } = this.state.readerSettings;
+        const readerClass = theme === 'dark' ? 'bg-slate-950 text-slate-300' : 'bg-paper-50 text-slate-900';
+
+        container.innerHTML = `
+          <!-- Reader Header -->
+          <header class="flex items-center justify-between p-4 border-b border-stone-200 dark:border-slate-800 bg-opacity-90 backdrop-blur-sm ${readerClass}">
+            <button onclick="app.exitReader()" class="p-2 -ml-2 hover:bg-stone-200/50 dark:hover:bg-slate-800 rounded-full transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-sm font-bold truncate max-w-[150px]">${book.title}</h3>
+            <button onclick="app.toggleReaderSettings()" class="p-2 -mr-2 hover:bg-stone-200/50 dark:hover:bg-slate-800 rounded-full transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+            </button>
+          </header>
+
+          <!-- Reader Content -->
+          <div id="reader-scroll-container" class="flex-1 overflow-y-auto relative" style="scroll-behavior: smooth;">
+            <article class="max-w-lg mx-auto py-8 px-6 reader-content font-serif" style="font-size: ${fontSize}px; line-height: 1.8;">
+              <h1 class="text-2xl font-bold mb-8 text-center font-sans">${book.title}</h1>
+              <div class="whitespace-pre-wrap">${book.content}</div>
+              <div class="h-20"></div> <!-- Spacer -->
+            </article>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="h-1 bg-stone-200 dark:bg-slate-800 w-full">
+            <div id="reader-progress" class="h-full bg-brand-500 transition-all duration-300" style="width: ${libItem.progress}%"></div>
+          </div>
+
+          <!-- Settings Overlay (Hidden by default) -->
+          <div id="reader-settings" class="absolute inset-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur z-50 hidden flex-col justify-end">
+            <div class="p-6 space-y-6 rounded-t-3xl bg-white dark:bg-slate-900 border-t border-stone-200 dark:border-slate-800 shadow-2xl animate-slide-up">
+              <div class="flex justify-between items-center mb-2">
+                <h4 class="font-bold text-lg">Reader Settings</h4>
+                <button onclick="app.toggleReaderSettings()" class="text-brand-500 font-medium">Done</button>
+              </div>
+              
+              <div>
+                <label class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-3 block">Font Size</label>
+                <div class="flex items-center gap-4">
+                  <button onclick="app.adjustFontSize(-2)" class="w-10 h-10 rounded-full bg-stone-100 dark:bg-slate-800 flex items-center justify-center text-lg hover:bg-stone-200">A-</button>
+                  <span class="text-sm font-mono w-12 text-center">${fontSize}px</span>
+                  <button onclick="app.adjustFontSize(2)" class="w-10 h-10 rounded-full bg-stone-100 dark:bg-slate-800 flex items-center justify-center text-lg hover:bg-stone-200">A+</button>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-3 block">Theme</label>
+                <div class="flex gap-3">
+                  <button onclick="app.setReaderTheme('light')" class="flex-1 py-3 rounded-xl border ${theme === 'light' ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500' : 'border-stone-200 dark:border-slate-700'} flex items-center justify-center gap-2">
+                    <div class="w-4 h-4 rounded-full bg-white border border-slate-300"></div> Light
+                  </button>
+                  <button onclick="app.setReaderTheme('dark')" class="flex-1 py-3 rounded-xl border ${theme === 'dark' ? 'border-brand-500 bg-slate-800 ring-1 ring-brand-500' : 'border-stone-200 dark:border-slate-700'} flex items-center justify-center gap-2">
+                    <div class="w-4 h-4 rounded-full bg-slate-900 border border-slate-600"></div> Dark
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(container);
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+        // Setup Scroll Logic
+        const scrollContainer = document.getElementById('reader-scroll-container');
+        
+        // Restore position
+        if (libItem.scrollPosition) {
+          setTimeout(() => scrollContainer.scrollTop = libItem.scrollPosition, 0);
+        }
+
+        scrollContainer.addEventListener('scroll', () => {
+          const scrollTop = scrollContainer.scrollTop;
+          const docHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+          const percent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+          
+          // Update UI
+          document.getElementById('reader-progress').style.width = `${Math.min(100, Math.max(0, percent))}%`;
+          
+          // Update State (Debounced in real app, but direct here for simplicity)
+          const item = this.state.library.find(l => l.id === bookId);
+          if (item) {
+            item.progress = Math.min(100, Math.max(0, percent));
+            item.scrollPosition = scrollTop;
+            this.saveState();
+          }
+        });
+      }
+
+      exitReader() {
+        const container = document.querySelector('#app > div > div.fixed'); // The overlay
+        if (container) {
+          container.remove();
+          document.body.style.overflow = '';
+        }
+        // Re-render previous view or library
+        this.router('library');
+      }
+
+      toggleReaderSettings() {
+        const el = document.getElementById('reader-settings');
+        el.classList.toggle('hidden');
+        el.classList.toggle('flex');
+      }
+
+      adjustFontSize(delta) {
+        const newSize = Math.max(14, Math.min(28, this.state.readerSettings.fontSize + delta));
+        this.state.readerSettings.fontSize = newSize;
+        this.saveState();
+        this.renderReader(this.state.currentBookId); // Re-render to apply size
+        
+        // Keep settings open
+        setTimeout(() => {
+            const el = document.getElementById('reader-settings');
+            if(el) {
+               el.classList.remove('hidden');
+               el.classList.add('flex');
+            }
+        }, 0);
+      }
+
+      setReaderTheme(theme) {
+        this.state.readerSettings.theme = theme;
+        this.saveState();
+        this.renderReader(this.state.currentBookId);
+         // Keep settings open
+         setTimeout(() => {
+            const el = document.getElementById('reader-settings');
+            if(el) {
+               el.classList.remove('hidden');
+               el.classList.add('flex');
+            }
+        }, 0);
+      }
+
+      // --- Logic Helpers ---
+      
+      updateBalanceUI() {
+        const el = document.getElementById('header-balance');
+        // Animate number change
+        const start = parseInt(el.innerText);
+        const end = this.state.balance;
+        this.animateValue(el, start, end, 500);
+      }
+
+      animateValue(obj, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+          if (!startTimestamp) startTimestamp = timestamp;
+          const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+          obj.innerHTML = Math.floor(progress * (end - start) + start);
+          if (progress < 1) {
+            window.requestAnimationFrame(step);
+          }
+        };
+        window.requestAnimationFrame(step);
+      }
+
+      buyBook(id) {
+        const book = booksData.find(b => b.id === id);
+        if (this.state.balance >= book.price) {
+          // Process purchase
+          this.state.balance -= book.price;
+          this.state.library.push({ id, progress: 0, scrollPosition: 0 });
+          this.saveState();
+          this.updateBalanceUI();
+          
+          // Feedback
+          this.fireConfetti();
+          this.hapticFeedback();
+          this.showToast('success', `You bought "${book.title}"!`);
+          
+          // Go to library or refresh detail
+          setTimeout(() => {
+             this.renderDetail(id);
+          }, 1000);
+
+        } else {
+          this.showToast('error', 'Not enough Stars!');
+        }
+      }
+
+      openReader(id) {
+        this.state.currentBookId = id;
+        this.renderReader(id);
+      }
+
+      // --- Components ---
+
+      createBookCard(book, vertical = false) {
+        const widthClass = vertical ? 'w-full' : 'min-w-[140px] w-[140px]';
+        const directionClass = vertical ? 'flex-col' : '';
+        
+        return `
+          <div class="${widthClass} flex ${directionClass} gap-3 group cursor-pointer" onclick="app.router('detail', ${book.id})">
+            <div class="relative w-full aspect-book rounded-lg overflow-hidden shadow-md group-hover:shadow-lg transition-all duration-300 transform group-hover:-translate-y-1">
+              <img src="${book.cover}" class="w-full h-full object-cover" alt="${book.title}" loading="lazy">
+              ${this.state.library.some(l => l.id === book.id) 
+                ? '<div class="absolute top-1 right-1 bg-brand-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">OWNED</div>' 
+                : ''}
+            </div>
+            <div class="flex flex-col justify-between py-1">
+              <div>
+                <h4 class="font-bold text-sm text-slate-900 dark:text-slate-100 leading-tight mb-1 line-clamp-2">${book.title}</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">${book.author}</p>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <span class="text-brand-600 dark:text-brand-400 text-sm font-bold flex items-center gap-0.5">✨ ${book.price}</span>
+                <span class="text-xs text-slate-400 flex items-center gap-0.5">★ ${book.rating}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      createLibraryBookCard(book, libItem) {
+        return `
+          <div class="flex gap-4 p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-stone-100 dark:border-slate-700 cursor-pointer hover:shadow-md transition-all active:scale-[0.99]" onclick="app.openReader(${book.id})">
+            <img src="${book.cover}" class="w-16 h-24 rounded object-cover shadow-sm" alt="${book.title}">
+            <div class="flex-1 flex flex-col justify-center">
+              <h4 class="font-bold text-slate-900 dark:text-slate-100 mb-1">${book.title}</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">${book.author}</p>
+              
+              <div class="flex items-center gap-2">
+                <div class="flex-1 h-1.5 bg-stone-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div class="h-full bg-brand-500 rounded-full" style="width: ${libItem.progress}%"></div>
+                </div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase">${Math.round(libItem.progress)}%</span>
+              </div>
+            </div>
+            <div class="flex items-center pr-2">
+               <svg class="w-5 h-5 text-slate-300 group-hover:text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+          </div>
+        `;
+      }
+
+      // --- Utils ---
+      
+      toggleTheme() {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      }
+
+      applyTheme() {
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+
+      showToast(type, message) {
+        const toast = document.getElementById('toast');
+        const msgEl = document.getElementById('toast-message');
+        const iconEl = document.getElementById('toast-icon');
+        
+        msgEl.textContent = message;
+        
+        if (type === 'success') {
+          toast.className = "fixed top-20 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 transition-all duration-300 z-50 animate-slide-up w-max max-w-[90%]";
+          iconEl.innerHTML = `<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+        } else {
+          toast.className = "fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 transition-all duration-300 z-50 animate-slide-up w-max max-w-[90%]";
+          iconEl.innerHTML = `<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+        }
+
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translate(-50%, -10px)';
+          setTimeout(() => { 
+             toast.style.display = 'none'; // simple hide to reset
+             toast.style.display = 'flex';
+             toast.style.opacity = '1';
+             toast.style.transform = 'translate(-50%, 0)';
+          }, 300);
+        }, 3000);
+      }
+
+      hapticFeedback() {
+        if (navigator.vibrate) {
+          navigator.vibrate([100, 50, 100]);
+        }
+      }
+
+      setupConfetti() {
+        this.confettiCtx = document.getElementById('confetti').getContext('2d');
+        this.confettiCtx.canvas.width = window.innerWidth;
+        this.confettiCtx.canvas.height = window.innerHeight;
+        window.addEventListener('resize', () => {
+           this.confettiCtx.canvas.width = window.innerWidth;
+           this.confettiCtx.canvas.height = window.innerHeight;
+        });
+      }
+
+      fireConfetti() {
+        const colors = ['#f59e0b', '#ec4899', '#3b82f6', '#10b981'];
+        const particles = [];
+        const particleCount = 150;
+
+        for (let i = 0; i < particleCount; i++) {
+          particles.push({
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2,
+            w: Math.random() * 10 + 5,
+            h: Math.random() * 10 + 5,
+            dx: (Math.random() - 0.5) * 20,
+            dy: (Math.random() - 0.5) * 20,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            angle: Math.random() * 360,
+            spin: (Math.random() - 0.5) * 0.2,
+            life: 100,
+            decay: Math.random() * 0.02 + 0.01
+          });
+        }
+
+        const render = () => {
+          const ctx = this.confettiCtx;
+          ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+          
+          let active = false;
+          particles.forEach(p => {
+            if (p.life > 0) {
+              active = true;
+              p.x += p.dx;
+              p.y += p.dy;
+              p.dy += 0.5; // gravity
+              p.life -= 2;
+              p.angle += p.spin * 10;
+              
+              ctx.save();
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.angle * Math.PI / 180);
+              ctx.fillStyle = p.color;
+              ctx.globalAlpha = p.life / 100;
+              ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+              ctx.restore();
+            }
+          });
+
+          if (active) requestAnimationFrame(render);
+          else ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        };
+        
+        render();
+      }
+    }
+
+    // Initialize App
+    const app = new App();
+
+    // Handle History for back button inside app
+    window.addEventListener('popstate', (e) => {
+       app.router('home');
+    });
+
+  </script>
+</body>
+</html>
